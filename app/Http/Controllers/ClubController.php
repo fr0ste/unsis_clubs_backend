@@ -25,9 +25,16 @@ class ClubController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \App\Http\Resources\ClubCollection
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws \Illuminate\Database\QueryException
+     * @throws \Exception
      */
     public function index(Request $request)
     {
+        // Check if the user is authorized to view any clubs
+        $this->authorize('viewany', Club::class);
+
         try {
             // Initialize ClubFilter and apply filters to the query
             $filter = new ClubFilter();
@@ -44,8 +51,16 @@ class ClubController extends Controller
 
             // Return paginated ClubCollection
             return new ClubCollection($clubs->paginate()->appends($request->query()));
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            // Log and throw authorization exception
+            Log::error('Authorization error in ClubController@index: ' . $e->getMessage(), ['exception' => $e]);
+            throw $e;
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Log and return database query error response
+            Log::error('Database query error in ClubController@index: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Error occurred while processing the request.'], 500);
         } catch (\Exception $e) {
-            // Log and return error response
+            // Log and return general error response
             Log::error('Error occurred in ClubController@index: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Error occurred while processing the request.'], 500);
         }

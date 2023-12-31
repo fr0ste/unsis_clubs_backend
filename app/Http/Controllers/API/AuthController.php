@@ -5,25 +5,44 @@ namespace App\Http\Controllers\API;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * Class AuthController
+ * @package App\Http\Controllers\API
+ *
+ * Controller for handling user authentication and registration.
+ */
 class AuthController extends Controller
 {
-    //
+    /**
+     * Create a new AuthController instance.
+     * Set up middleware to exclude login and register methods from the 'api' guard.
+     */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);//login, register methods won't go through the api guard
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
-    public function login(Request $request)
+
+    /**
+     * Authenticate the user and return a JWT token upon successful login.
+     *
+     * @param LoginRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => $request->input('Email'),
+            'password' =>$request->input('password'),
+        ];
+
         $token = Auth::attempt($credentials);
 
         if (!$token) {
@@ -42,49 +61,72 @@ class AuthController extends Controller
         ]);
     }
 
-    public function register(Request $request)
+    /**
+     * Register a new user and return a JWT token upon successful registration.
+     *
+     * @param RegisterRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function register(RegisterRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 400);
+        try {
+            // Encrypt the password before storing it in the database
+            $encryptedPassword = Hash::make($request->input('password'));
+
+            // Create a new user and assign the encrypted password
+            $userData = $request->except('password');
+            $userData['password'] = $encryptedPassword;
+
+            $user = User::create($userData);
+
+            // Generate a JWT token for the registered user
+            $token = JWTAuth::fromUser($user);
+
+            return response()->json([
+                'message' => 'User successfully registered',
+                'user' => $user,
+                'token' => $token,
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Log and return an error response
+            Log::error('Error occurred in userController@store: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Error occurred while creating the user.'], 500);
         }
-
-        $user = User::create([
-            'name' => $request->get('name'),
-            'email' => $request->get('email'),
-            'password' => Hash::make($request->get('password')),
-        ]);
-
-        $token = JWTAuth::fromUser($user);
-
-        return response()->json([
-            'message' => 'User successfully registered',
-            'user' => $user,
-            'token' => $token,
-        ], 200);
     }
 
+    /**
+     * Retrieve the authenticated user's account information.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getaccount()
     {
         return response()->json(auth()->user());
     }
 
-
+    /**
+     * Logout the authenticated user.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout()
     {
         auth()->logout();
 
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+    /**
+     * Refresh the JWT token for the authenticated user.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function refresh()
     {
         return response()->json([
             'user' => Auth::user(),
-            'authorisation' => [
+            'authorization' => [
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
             ]

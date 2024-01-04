@@ -1,9 +1,8 @@
 <?php
 
-namespace Database\Seeders;
-
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\ClubSeeder;
 use Illuminate\Database\Seeder;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,14 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        $this->call(ClubSeeder::class);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-        $this->call([
-            AgendaClubSeeder::class,
+           /* AgendaClubSeeder::class,
             AttendanceSeeder::class,
             AttendanceStatusSeeder::class,            
             ClubSeeder::class,
@@ -27,7 +21,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ScheduleSeeder::class,
 
-            // Otros seeders...
-        ]);
+        );*/
     }
 }

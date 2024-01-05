@@ -43,3 +43,4 @@ class ClubSeeder extends Seeder
 
     }
 }
+

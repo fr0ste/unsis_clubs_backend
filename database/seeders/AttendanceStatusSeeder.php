@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\AttendanceStatus;
 
 
@@ -14,8 +17,16 @@ class AttendanceStatusSeeder extends Seeder
      */
     public function run()
     {
-        //
-        AttendanceStatus::factory()->count(5)->create();
+        //AttendanceStatus::factory()->count(5)->create();
+        $estados = [
+            'si', 'no', 'Permiso' ];
 
+
+        foreach ($estados as $estado) {
+            DB::table('attendance_status')->insert([
+                'AttendanceStatus' => $estado,
+            ]);
+        }
     }
 }
+

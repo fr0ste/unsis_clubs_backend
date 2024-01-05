@@ -7,6 +7,7 @@ use Database\Seeders\RoleSeeder;
 use Database\Seeders\ScheduleSeeder;
 use Database\Seeders\AttendanceStatusSeeder;
 use Database\Seeders\AttendanceSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ClubDaySeeder::class,
             RoleSeeder::class,
             ScheduleSeeder::class,
+            UserSeeder::class
            // AttendanceSeeder::class,
 
         ]);

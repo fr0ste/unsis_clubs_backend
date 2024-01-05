@@ -17,7 +17,7 @@ class RoleSeeder extends Seeder
     public function run()
     {
         //Role::factory()->count(3)->create();
-        $keywords = ['Administrador', 'Encargado', 'Alumno'
+        $keywords = ['ROLE_ADMIN', 'ROLE_CAREER_HEAD', 'ROLE_CLUB_LEADER', 'ROLE_STUDENT'
         ];
 
         foreach ($keywords as $keyword) {
